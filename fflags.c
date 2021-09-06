@@ -1,7 +1,7 @@
 ﻿#include <stdio.h>
 #include <stdlib.h>
 #include "string.h"
-#include "fflages.h"
+#include "fflags.h"
 
 typedef struct ff_Argv ff_Argv;
 
@@ -37,17 +37,19 @@ struct ff_Argv {
 ff_FFlags *ff_makeFFlags(int argc, char **argv, ff_Child *child[]) {
     ff_Child *get_child = NULL;
     ff_Argv *ff_argv = NULL;
-    ff_Argv **pff_argv = NULL;
     bool is_default;
-    if (argc >= 1 && child != NULL) // 无参数处理
+    if (argc > 1 && child != NULL) // 无参数处理
         is_default = findChild(argv[2], &get_child, child);
     else
         return NULL;
 
     if (is_default)
-        pff_argv = makeArgv(argc - 1, argv + 1, &ff_argv);
+        makeArgv(argc - 1, argv + 1, &ff_argv);
     else
-        pff_argv = makeArgv(argc - 2, argv + 2, &ff_argv);
+        makeArgv(argc - 2, argv + 2, &ff_argv);
+
+    if (ff_argv == NULL)
+        return NULL;
 
     ff_FFlags *ff = calloc_(1, sizeof(ff_FFlags));
     ff->child = get_child;
@@ -89,6 +91,7 @@ static ff_Argv **makeArgv(int argc, char **argv, ff_Argv **base) {
 
         if (strcmp("-", *argv) == 0 || strcmp("/", *argv) == 0 || strcmp("--", *argv) == 0) {  // 没有参数
             freeArgv(*base_argv);
+            *base = NULL;
             return NULL;
         }
 

@@ -1,4 +1,4 @@
-﻿#include "../fflages.h"
+﻿#include "../fflags.h"
 #include <stdio.h>
 
 ff_DefineArg main_define[] = {

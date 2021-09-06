@@ -1,5 +1,5 @@
-﻿#ifndef FFLAGS_FFLAGES_H
-#define FFLAGS_FFLAGES_H
+﻿#ifndef FFLAGS_FFLAGS_H
+#define FFLAGS_FFLAGS_H
 #include <stdbool.h>
 #include "stdlib.h"
 
@@ -36,4 +36,4 @@ void printInfo_Debug(ff_FFlags *ff);
 int getOpt(char **arg, ff_FFlags *ff);
 bool getWildOpt(char **arg, ff_FFlags *ff);
 
-#endif //FFLAGS_FFLAGES_H
+#endif //FFLAGS_FFLAGS_H

@@ -18,8 +18,8 @@ set(CMAKE_C_STANDARD 11)
 include_directories(${CMAKE_SOURCE_DIR})
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")  # 设置安装路径
 
-add_library(FFlags SHARED fflages.c)
-set_target_properties(FFlags PROPERTIES PUBLIC_HEADER fflages.h)
+add_library(FFlags SHARED fflags.c)
+set_target_properties(FFlags PROPERTIES PUBLIC_HEADER fflags.h)
 
 enable_testing()
 add_subdirectory(test)
