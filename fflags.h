@@ -3,6 +3,22 @@
 #include <stdbool.h>
 #include "stdlib.h"
 
+/* 操作宏 */
+#define ff_defArg(name, is_default) ff_DefineArg ffu_ ## name ## _define[] = {
+#define ff_argRule(short, long, arg_type, mark_) \
+    {.short_opt=#short[0], .long_opt=#long, .type=ff_ ## arg_type ## _argument, .mark=mark_},
+#define ff_argRule_(short, long, arg_type, mark_) \
+    {.short_opt=short, .long_opt=long, .type=ff_ ## arg_type ## _argument, .mark=mark_},
+#define ff_endArg(name, is_default_) \
+    {.mark=0},};                    \
+    ff_Child ffu_ ## name ## _child = {.is_default=is_default_, .child_name=#name, .define=ffu_ ## name ## _define}
+
+#define ff_child(name) (&(ffu_ ## name ## _child))
+#define ff_childList(name, ...) ff_Child *ffu_ ## name ## _child_list[] = {__VA_ARGS__, NULL}
+
+#define ff_initFFlags(argc, argv, cl) (ff_makeFFlags((argc), (argv), (ffu_ ## cl ## _child_list)))
+
+/* 数据定义 */
 enum optType {
     ff_not_argument = 0,
     ff_can_argument = 1,
@@ -14,8 +30,6 @@ typedef struct ff_FFlags ff_FFlags;
 typedef struct ff_Child ff_Child;
 typedef struct ff_DefineArg ff_DefineArg;
 
-extern void *(*calloc_)(size_t, size_t);
-
 struct ff_Child {
     bool is_default;
     char *child_name;
@@ -25,15 +39,14 @@ struct ff_Child {
 struct ff_DefineArg {
     char short_opt;
     char *long_opt;
-    optType type;
+    enum optType type;
     int mark;  // 标识
 };
 
 ff_FFlags *ff_makeFFlags(int argc, char **argv, ff_Child *child[]);
 void ff_freeFFlags(ff_FFlags *ff);
 
-void printInfo_Debug(ff_FFlags *ff);
-int getOpt(char **arg, ff_FFlags *ff);
-bool getWildOpt(char **arg, ff_FFlags *ff);
+int ff_getopt(char **arg, ff_FFlags *ff);
+bool ff_getopt_wild(char **arg, ff_FFlags *ff);
 
 #endif //FFLAGS_FFLAGS_H

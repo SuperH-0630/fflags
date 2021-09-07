@@ -14,6 +14,12 @@ static void freeAllArgv(ff_Argv *argv);
 
 static bool findChild(char *name, ff_Child **result, ff_Child *child[]);
 
+static int getLongOpt(char *opt, char **arg, ff_FFlags *ff);
+static void argvToNext(ff_FFlags *ff);
+static int getShortOpt(char ch, char **arg, ff_FFlags *ff);
+static ff_DefineArg *findDefineByOpt(char *opt, ff_Child *child);
+static ff_DefineArg *findDefineByCh(char ch, ff_Child *child);
+
 struct ff_FFlags {
     struct ff_Child *child;  // 数组
 
@@ -123,16 +129,6 @@ static void freeAllArgv(ff_Argv *argv) {
         argv = freeArgv(argv);
 }
 
-/*
- * 函数名: printInfo_Debug
- * 目标: 输出 ff_FFlags 信息
- */
-void printInfo_Debug(ff_FFlags *ff) {
-    size_t i = 0;
-    for (ff_Argv *argv = ff->argv; argv != NULL; argv = argv->next, i++)
-        printf("%zu. '%s', wild: %d, arg: %d\n", i, argv->data, argv->wild, argv->is_arg);
-}
-
 static ff_DefineArg *findDefineByCh(char ch, ff_Child *child) {
     for (ff_DefineArg *define = child->define; define->mark != 0; define++) {
         if (define->short_opt == ch)
@@ -208,7 +204,7 @@ static void argvToNext(ff_FFlags *ff) {
     ff->argv_index = 1;  // 例如 -xy index=1表示该参数的 'x' 字符
 }
 
-int getOpt(char **arg, ff_FFlags *ff) {
+int ff_getopt(char **arg, ff_FFlags *ff) {
     if (ff->child == NULL)
         return -2;
 
@@ -246,7 +242,7 @@ int getOpt(char **arg, ff_FFlags *ff) {
     return -1;
 }
 
-bool getWildOpt(char **arg, ff_FFlags *ff) {
+bool ff_getopt_wild(char **arg, ff_FFlags *ff) {
     ff_Argv *wild = ff->wild_arg;
     if (wild == NULL) {
         *arg = NULL;

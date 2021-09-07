@@ -1,20 +1,17 @@
 ﻿#include "../fflags.h"
 #include <stdio.h>
 
-ff_DefineArg main_define[] = {
-        {.short_opt='m', .long_opt="message", .type=ff_not_argument, .mark=1},
-        {.short_opt='w', .long_opt="msg2", .type=ff_not_argument, .mark=2},
-        {.short_opt='e', .long_opt="msg3", .type=ff_can_argument, .mark=3},
-        {.short_opt='r', .long_opt="msg4", .type=ff_must_argument, .mark=4},
-        {.mark=0},
-};
+ff_defArg(main, true)
+    ff_argRule(m, message, not, 1)
+    ff_argRule(w, msg2, not, 2)
+    ff_argRule(e, msg3, can, 3)
+    ff_argRule_('r', "msg4", must, 4)
+ff_endArg(main, true);
 
-ff_Child main_child = {.is_default=true, .child_name="main", .define=main_define};
-ff_Child *child_list[] = {&main_child, NULL};
+ff_childList(sys, ff_child(main));
 
 int main(int argc, char **argv) {
-    printf("HelloWorld\n");
-    ff_FFlags *ff = ff_makeFFlags(argc, argv, child_list);
+    ff_FFlags *ff = ff_initFFlags(argc, argv, sys);
     if (ff == NULL)
         return 1;
 
@@ -22,7 +19,7 @@ int main(int argc, char **argv) {
     int mark = 0;
 
     while (1) {
-        mark = getOpt(&text, ff);
+        mark = ff_getopt(&text, ff);
         switch (mark) {
             case 1:
                 printf("mark = 1\n");
@@ -45,7 +42,7 @@ int main(int argc, char **argv) {
     }
 
     out:
-    while (getWildOpt(&text, ff)) {
+    while (ff_getopt_wild(&text, ff)) {
         printf("wild: %s\n", text);
     }
 
