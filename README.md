@@ -96,7 +96,12 @@ $ mkdir build
 $ cd build
 $ cmake ..
 ```
-FFlags无添加`cmake`参数，在`cmake`构建期间可添加`cmake`内置参数。  
+可以通过`-D`选项添加`cmake`参数。  
+FFlags支持的参数包括：
+```
+FFLAGS_BUILD_TEST  # 是否构建测试项目
+SET_OUTPUT_DIRECTORY  # 是否重新设定output位置 (当fflags作为子项目时, 请设置为OFF)
+```
 通常，使用`make`工具编译和安装项目。  
 ```shell
 $ make
@@ -107,6 +112,13 @@ $ make install
 ### 编译目标
 编译后可得到`FFlags`动态库，以及`fflags.h`头文件。  
 使用该库时，将`FFlags`动态库连接到你的程序，并且在程序在包含`fflags.h`头文件即可。
+### 作为子项目
+可以直接将`FFlags`作为子项目包含到你的项目中, 在`CMakeLists.txt`添加如下代码：
+```c
+set(FFLAGS_BUILD_TEST OFF)
+set(SET_OUTPUT_DIRECTORY OFF)
+add_subdirectory(fflags)
+```
 
 ## 声明
 ### 免责声明
