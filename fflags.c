@@ -45,7 +45,7 @@ ff_FFlags *ff_makeFFlags(int argc, char **argv, ff_Child *child[]) {
     ff_Argv *ff_argv = NULL;
     bool is_default;
     if (argc > 1 && child != NULL) // 无参数处理
-        is_default = findChild(argv[2], &get_child, child);
+        is_default = findChild(argv[1], &get_child, child);
     else
         return NULL;
 
