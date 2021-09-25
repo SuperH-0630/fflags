@@ -13,6 +13,7 @@ static ff_Argv *freeArgv(ff_Argv *argv);
 static void freeAllArgv(ff_Argv *argv);
 
 static bool findChild(char *name, ff_Child **result, ff_Child *child[]);
+static bool findChildDefault(ff_Child **result, ff_Child *child[]);
 
 static int getLongOpt(char *opt, char **arg, ff_FFlags *ff);
 static void argvToNext(ff_FFlags *ff);
@@ -44,18 +45,24 @@ ff_FFlags *ff_makeFFlags(int argc, char **argv, ff_Child *child[]) {
     ff_Child *get_child = NULL;
     ff_Argv *ff_argv = NULL;
     bool is_default;
-    if (argc > 1 && child != NULL) // 无参数处理
-        is_default = findChild(argv[1], &get_child, child);
-    else
-        return NULL;
+    argc--;  // 去掉第一个参数
+    argv++;
 
-    if (is_default)
-        makeArgv(argc - 1, argv + 1, &ff_argv);
+    if (argc >= 1 && child != NULL) // 无参数处理
+        is_default = findChild(argv[0], &get_child, child);
     else
-        makeArgv(argc - 2, argv + 2, &ff_argv);
+        is_default = findChildDefault(&get_child, child);
 
-    if (ff_argv == NULL)
-        return NULL;
+    if (!is_default) {
+        argc--;  // 再去掉一个参数
+        argv++;
+    }
+
+    if (argc != 0) {
+        makeArgv(argc, argv, &ff_argv);
+        if (ff_argv == NULL)
+            return NULL;
+    }
 
     ff_FFlags *ff = calloc_(1, sizeof(ff_FFlags));
     ff->child = get_child;
@@ -84,6 +91,16 @@ static bool findChild(char *name, ff_Child **result, ff_Child *child[]) {
             *result = *child;
             return false;
         } if ((*child)->is_default)
+            default_child = *child;
+    }
+    *result = default_child;
+    return true;
+}
+
+static bool findChildDefault(ff_Child **result, ff_Child *child[]) {
+    ff_Child *default_child = NULL;
+    for (NULL; *child != NULL; child++) {
+        if ((*child)->is_default)
             default_child = *child;
     }
     *result = default_child;
