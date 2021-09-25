@@ -68,6 +68,10 @@ ff_FFlags *ff_makeFFlags(int argc, char **argv, ff_Child *child[]) {
     return ff;
 }
 
+char *ff_childType(ff_FFlags *ff) {
+    return ff->child->child_name;
+}
+
 void ff_freeFFlags(ff_FFlags *ff) {
     freeAllArgv(ff->argv);
     free(ff);

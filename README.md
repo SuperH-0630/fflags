@@ -57,7 +57,12 @@ ff_childList(<主程序名字>, ff_child(<子程序名字>) ...);
 ```c
 ff_FFlags *ff = ff_initFFlags(argc, argv, sys);
 ```
-当该操作返回值为`NULL`时，意味着初始化失败，通常的原因是遇到错误的参数或无适配的子程序。  
+当该操作返回值为`NULL`时，意味着初始化失败，通常的原因是遇到错误的参数或无适配的子程序。
+
+使用`ff_getChild(<解析器>)`获取匹配的子程序名字。
+```c
+ff_getChild(ff);
+```
 
 参数处理完成后，使用`ff_freeFFlags(<解析器>)`释放解析器，例如：  
 ```c
