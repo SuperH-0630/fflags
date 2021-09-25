@@ -2,9 +2,9 @@
 #include <stdio.h>
 
 ff_defArg(main, true)
-    ff_argRule(m, message, not, 1)
-    ff_argRule(w, msg2, not, 2)
-    ff_argRule(e, msg3, can, 3)
+    ff_argRule('m', message, not, 1)
+    ff_argRule('w', msg2, not, 2)
+    ff_argRule('e', msg3, can, 3)
     ff_argRule_('r', "msg4", must, 4)
 ff_endArg(main, true);
 

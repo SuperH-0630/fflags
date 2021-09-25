@@ -6,6 +6,8 @@ option(BUILD_SHARED_LIBS "shared/static libs" ON)
 option(FFLAGS_BUILD_TEST "build fflags test" ON)
 option(SET_OUTPUT_DIRECTORY "set output directory" OFF)
 
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 if(SET_OUTPUT_DIRECTORY)
     message(STATUS "set output directory")
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)

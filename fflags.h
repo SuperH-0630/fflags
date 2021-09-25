@@ -6,7 +6,7 @@
 /* 操作宏 */
 #define ff_defArg(name, is_default) ff_DefineArg ffu_ ## name ## _define[] = {
 #define ff_argRule(short, long, arg_type, mark_) \
-    {.short_opt=#short[0], .long_opt=#long, .type=ff_ ## arg_type ## _argument, .mark=mark_},
+    {.short_opt=short, .long_opt=#long, .type=ff_ ## arg_type ## _argument, .mark=mark_},
 #define ff_argRule_(short, long, arg_type, mark_) \
     {.short_opt=short, .long_opt=long, .type=ff_ ## arg_type ## _argument, .mark=mark_},
 #define ff_endArg(name, is_default_) \

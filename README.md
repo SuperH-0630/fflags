@@ -34,10 +34,10 @@ ff_endArg(<子程序名字>, <是否为default true/false>);
 例如：
 ```c
 ff_defArg(main, true)
-    ff_argRule(m, message, not, 1)
-    ff_argRule(w, msg2, not, 2)
-    ff_argRule(e, msg3, can, 3)
-    ff_argRule(r, msg4, must, 4)
+    ff_argRule('m', message, not, 1)
+    ff_argRule('w', msg2, not, 2)
+    ff_argRule('e', msg3, can, 3)
+    ff_argRule('r', msg4, must, 4)
 ff_endArg(main, true);
 ```
 如果`ff_argRule`时，长参数包含空格符，则需要使用`ff_argRule_`定义：
