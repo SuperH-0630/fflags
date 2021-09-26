@@ -16,7 +16,7 @@
 #define ff_child(name) (&(ffu_ ## name ## _child))
 #define ff_childList(name, ...) ff_Child *ffu_ ## name ## _child_list[] = {__VA_ARGS__, NULL}
 
-#define ff_initFFlags(argc, argv, cl) (ff_makeFFlags((argc), (argv), (ffu_ ## cl ## _child_list)))
+#define ff_initFFlags(argc, argv, d, slash, cl) (ff_makeFFlags((argc), (argv), (d), (slash), (ffu_ ## cl ## _child_list)))
 #define ff_getChild(ff) ff_childType(ff)
 
 /* 数据定义 */
@@ -44,7 +44,7 @@ struct ff_DefineArg {
     int mark;  // 标识
 };
 
-ff_FFlags *ff_makeFFlags(int argc, char **argv, ff_Child *child[]);
+ff_FFlags *ff_makeFFlags(int argc, char **argv, bool del_first, bool allown_slash, ff_Child *child[]);
 char *ff_childType(ff_FFlags *ff);
 void ff_freeFFlags(ff_FFlags *ff);
 

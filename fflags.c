@@ -8,7 +8,7 @@ typedef struct ff_Argv ff_Argv;
 #define free(p) ((((p)!=NULL) ? (free(p), NULL) : NULL), (p)=NULL)
 void *(*calloc_)(size_t n, size_t size) = calloc;
 
-static ff_Argv **makeArgv(int argc, char **argv, ff_Argv **base);
+static ff_Argv **makeArgv(int argc, char **argv, bool slash, ff_Argv **base);
 static ff_Argv *freeArgv(ff_Argv *argv);
 static void freeAllArgv(ff_Argv *argv);
 
@@ -31,6 +31,7 @@ struct ff_FFlags {
     struct ff_Argv *wild_arg;
 
     size_t argv_index;  // argv_index
+    bool allown_slash;
 };
 
 struct ff_Argv {
@@ -41,12 +42,14 @@ struct ff_Argv {
     struct ff_Argv *next;
 };
 
-ff_FFlags *ff_makeFFlags(int argc, char **argv, ff_Child *child[]) {
+ff_FFlags *ff_makeFFlags(int argc, char **argv, bool del_first, bool allown_slash, ff_Child *child[]) {
     ff_Child *get_child = NULL;
     ff_Argv *ff_argv = NULL;
     bool is_default;
-    argc--;  // 去掉第一个参数
-    argv++;
+    if (del_first) {
+        argc--;  // 去掉第一个参数
+        argv++;
+    }
 
     if (argc >= 1 && child != NULL) // 无参数处理
         is_default = findChild(argv[0], &get_child, child);
@@ -59,7 +62,7 @@ ff_FFlags *ff_makeFFlags(int argc, char **argv, ff_Child *child[]) {
     }
 
     if (argc != 0) {
-        makeArgv(argc, argv, &ff_argv);
+        makeArgv(argc, argv, allown_slash, &ff_argv);
         if (ff_argv == NULL)
             return NULL;
     }
@@ -72,6 +75,7 @@ ff_FFlags *ff_makeFFlags(int argc, char **argv, ff_Child *child[]) {
     if (ff->done != NULL)
         ff->next = ff->done->next;
     ff->argv_index = 1;
+    ff->allown_slash = allown_slash;
     return ff;
 }
 
@@ -107,29 +111,31 @@ static bool findChildDefault(ff_Child **result, ff_Child *child[]) {
     return true;
 }
 
-static ff_Argv **makeArgv(int argc, char **argv, ff_Argv **base) {
+static ff_Argv **makeArgv(int argc, char **argv, bool slash, ff_Argv **base) {
     ff_Argv **base_argv = base;
     bool is_wild = false;
     for (int i = 0; i < argc; i++) {
-        if (!is_wild && strcmp(argv[i], "--") == 0) {
+        if (!is_wild && strcmp(argv[i], "--") == 0) {  // 变为野参数
             is_wild = true;
             continue;  // 跳过
         }
 
-        if (strcmp("-", *argv) == 0 || strcmp("/", *argv) == 0 || strcmp("--", *argv) == 0) {  // 没有参数
-            freeArgv(*base_argv);
-            *base = NULL;
-            return NULL;
+        if (!is_wild) {
+            /* 检测是否没有参数 */
+            if (strcmp("-", argv[i]) == 0 || (slash && strcmp("/", argv[i]) == 0) || strcmp("--", argv[i]) == 0) {
+                freeArgv(*base_argv);
+                *base = NULL;
+                return NULL;
+            }
         }
 
         *base = calloc_(1, sizeof(ff_Argv));
         (*base)->data = argv[i];
         (*base)->should_free = false;
 
-        if (is_wild) {
-            (*base)->is_arg = true;
+        if (is_wild)
             (*base)->wild = true;
-        } else if (((*argv[i] != '-') && (*argv[i] != '/')))
+        else if (((*argv[i] != '-') && (slash || (*argv[i] != '/'))))  // 检查是否 arg
             (*base)->is_arg = true;
 
         base = &((*base)->next);
@@ -230,6 +236,11 @@ int ff_getopt(char **arg, ff_FFlags *ff) {
         return -2;
 
     while (ff->done != NULL) {
+        if (ff->done->wild) {
+            argvToNext(ff);
+            continue;  // 跳过该参数
+        }
+
         if (*(ff->done->data) == '-') {
             if (*(ff->done->data + 1) == '-') {  // 长参数
                 int mark = getLongOpt(ff->done->data + 2, arg, ff);
@@ -242,19 +253,18 @@ int ff_getopt(char **arg, ff_FFlags *ff) {
                     argvToNext(ff);
                 return mark;
             }
-        } else if (*(ff->done->data) == '/') {
+        } else if (ff->allown_slash && *(ff->done->data) == '/') {  // allow_slash时该分支才有效
             if (strlen(ff->done->data) > 2) {  // 长参数
                 int mark = getLongOpt(ff->done->data + 1, arg, ff);
                 argvToNext(ff);
                 return mark;
             } else {
-                int ch = getShortOpt(*ff->done->data, arg, ff);
+                int ch = getShortOpt(ff->done->data[1], arg, ff);
                 argvToNext(ff);
                 return ch;
             }
         } else {
             ff->done->wild = true;
-            ff->done->is_arg = true;
             argvToNext(ff);
             continue;  // 跳过该参数
         }

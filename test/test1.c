@@ -11,7 +11,7 @@ ff_endArg(main, true);
 ff_childList(sys, ff_child(main));
 
 int main(int argc, char **argv) {
-    ff_FFlags *ff = ff_initFFlags(argc, argv, sys);
+    ff_FFlags *ff = ff_initFFlags(argc, argv, true, true, sys);
     if (ff == NULL)
         return 1;
 
