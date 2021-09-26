@@ -1,7 +1,8 @@
 ﻿#ifndef FFLAGS_FFLAGS_H
 #define FFLAGS_FFLAGS_H
 #include <stdbool.h>
-#include "stdlib.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 /* 操作宏 */
 #define ff_defArg(name, is_default) ff_DefineArg ffu_ ## name ## _define[] = {
@@ -16,7 +17,7 @@
 #define ff_child(name) (&(ffu_ ## name ## _child))
 #define ff_childList(name, ...) ff_Child *ffu_ ## name ## _child_list[] = {__VA_ARGS__, NULL}
 
-#define ff_initFFlags(argc, argv, d, slash, cl) (ff_makeFFlags((argc), (argv), (d), (slash), (ffu_ ## cl ## _child_list)))
+#define ff_initFFlags(argc, argv, d, slash, f, cl) (ff_makeFFlags((argc), (argv), (d), (slash), (f), (ffu_ ## cl ## _child_list)))
 #define ff_getChild(ff) ff_childType(ff)
 
 /* 数据定义 */
@@ -44,7 +45,7 @@ struct ff_DefineArg {
     int mark;  // 标识
 };
 
-ff_FFlags *ff_makeFFlags(int argc, char **argv, bool del_first, bool allown_slash, ff_Child *child[]);
+ff_FFlags *ff_makeFFlags(int argc, char **argv, bool del_first, bool allown_slash, FILE *error_file, ff_Child *child[]);
 char *ff_childType(ff_FFlags *ff);
 void ff_freeFFlags(ff_FFlags *ff);
 

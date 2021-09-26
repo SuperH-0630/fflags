@@ -32,6 +32,7 @@ struct ff_FFlags {
 
     size_t argv_index;  // argv_index
     bool allown_slash;
+    FILE *error_file;  // 错误信息, 字符串常量
 };
 
 struct ff_Argv {
@@ -42,7 +43,7 @@ struct ff_Argv {
     struct ff_Argv *next;
 };
 
-ff_FFlags *ff_makeFFlags(int argc, char **argv, bool del_first, bool allown_slash, ff_Child *child[]) {
+ff_FFlags *ff_makeFFlags(int argc, char **argv, bool del_first, bool allown_slash, FILE *error_file, ff_Child *child[]) {
     ff_Child *get_child = NULL;
     ff_Argv *ff_argv = NULL;
     bool is_default;
@@ -76,6 +77,10 @@ ff_FFlags *ff_makeFFlags(int argc, char **argv, bool del_first, bool allown_slas
         ff->next = ff->done->next;
     ff->argv_index = 1;
     ff->allown_slash = allown_slash;
+    if (error_file != NULL)
+        ff->error_file = error_file;
+    else
+        ff->error_file = stderr;
     return ff;
 }
 
@@ -174,14 +179,17 @@ static ff_DefineArg *findDefineByOpt(char *opt, ff_Child *child) {
 
 static int getShortOpt(char ch, char **arg, ff_FFlags *ff) {
     ff_DefineArg *define = findDefineByCh(ch, ff->child);
-    if (define == NULL)
+    if (define == NULL) {
+        fprintf(ff->error_file, "Program get a not support option. [-%c]\n", ch);
         return 0;
+    }
 
     int mark = define->mark;
     if (define->type == ff_must_argument) {
         if (ff->next == NULL || ff->next->wild || !ff->next->is_arg) {  // 不是合法参数
             *arg = NULL;
             mark = 0;
+            fprintf(ff->error_file, "Program do not get a argument after option. [-%c]\n", ch);
         } else {
             *arg = ff->next->data;
             ff->next = ff->next->next;
@@ -199,14 +207,17 @@ static int getShortOpt(char ch, char **arg, ff_FFlags *ff) {
 
 static int getLongOpt(char *opt, char **arg, ff_FFlags *ff) {
     ff_DefineArg *define = findDefineByOpt(opt, ff->child);
-    if (define == NULL)
+    if (define == NULL) {
+        fprintf(ff->error_file, "Program get a not support option. [--%s]\n", opt);
         return 0;
+    }
 
     int mark = define->mark;
     if (define->type == ff_must_argument) {
         if (ff->next == NULL || ff->next->wild || !ff->next->is_arg) {  // 不是合法参数
             *arg = NULL;
             mark = 0;
+            fprintf(ff->error_file, "Program do not get a argument after option. [-%s]\n", opt);
         } else {
             *arg = ff->next->data;
             ff->next = ff->next->next;
@@ -232,8 +243,10 @@ static void argvToNext(ff_FFlags *ff) {
 }
 
 int ff_getopt(char **arg, ff_FFlags *ff) {
-    if (ff->child == NULL)
+    if (ff->child == NULL) {
+        fprintf(ff->error_file, "Program do not get child.\n");
         return -2;
+    }
 
     while (ff->done != NULL) {
         if (ff->done->wild) {
