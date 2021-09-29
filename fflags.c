@@ -33,6 +33,9 @@ struct ff_FFlags {
     size_t argv_index;  // argv_index
     bool allown_slash;
     FILE *error_file;  // 错误信息, 字符串常量
+
+    int argc_;
+    char **argv_;
 };
 
 struct ff_Argv {
@@ -57,12 +60,15 @@ ff_FFlags *ff_makeFFlags(int argc, char **argv, bool del_first, bool allown_slas
     else
         is_default = findChildDefault(&get_child, child);
 
+    if (get_child == NULL)
+        return NULL;
+
     if (!is_default) {
         argc--;  // 再去掉一个参数
         argv++;
     }
 
-    if (argc != 0) {
+    if (argc != 0 && !get_child->self_process) {
         makeArgv(argc, argv, allown_slash, &ff_argv);
         if (ff_argv == NULL)
             return NULL;
@@ -70,13 +76,18 @@ ff_FFlags *ff_makeFFlags(int argc, char **argv, bool del_first, bool allown_slas
 
     ff_FFlags *ff = calloc_(1, sizeof(ff_FFlags));
     ff->child = get_child;
+    ff->argc_ = argc;
+    ff->argv_ = argv;
+
     ff->argv = ff_argv;
     ff->done = ff->argv;
     ff->wild_arg = ff->argv;
     if (ff->done != NULL)
         ff->next = ff->done->next;
+
     ff->argv_index = 1;
     ff->allown_slash = allown_slash;
+
     if (error_file != NULL)
         ff->error_file = error_file;
     else
@@ -304,4 +315,9 @@ bool ff_getopt_wild(char **arg, ff_FFlags *ff) {
     *arg = NULL;
     ff->wild_arg = NULL;
     return false;
+}
+
+int ff_get_process_argv(char * **argv, ff_FFlags *ff) {
+    *argv = ff->argv_;
+    return ff->argc_;
 }

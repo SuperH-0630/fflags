@@ -12,7 +12,9 @@
     {.short_opt=short, .long_opt=long, .type=ff_ ## arg_type ## _argument, .mark=mark_},
 #define ff_endArg(name, is_default_) \
     {.mark=0},};                    \
-    ff_Child ffu_ ## name ## _child = {.is_default=is_default_, .child_name=#name, .define=ffu_ ## name ## _define}
+    ff_Child ffu_ ## name ## _child = {.is_default=(is_default_), .child_name=#name, .self_process=false, .define=ffu_ ## name ## _define}
+
+#define ff_selfProcessChild(name, is_default_) ff_Child ffu_ ## name ## _child = {.is_default=(is_default_), .child_name=#name, .self_process=true, .define=NULL}
 
 #define ff_child(name) (&(ffu_ ## name ## _child))
 #define ff_childList(name, ...) ff_Child *ffu_ ## name ## _child_list[] = {__VA_ARGS__, NULL}
@@ -34,6 +36,7 @@ typedef struct ff_DefineArg ff_DefineArg;
 
 struct ff_Child {
     bool is_default;
+    bool self_process;  // 自行除了参数
     char *child_name;
     struct ff_DefineArg *define;  // 列表
 };
@@ -51,5 +54,6 @@ void ff_freeFFlags(ff_FFlags *ff);
 
 int ff_getopt(char **arg, ff_FFlags *ff);
 bool ff_getopt_wild(char **arg, ff_FFlags *ff);
+int ff_get_process_argv(char * **argv, ff_FFlags *ff);
 
 #endif //FFLAGS_FFLAGS_H
