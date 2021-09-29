@@ -54,6 +54,8 @@ void ff_freeFFlags(ff_FFlags *ff);
 
 int ff_getopt(char **arg, ff_FFlags *ff);
 bool ff_getopt_wild(char **arg, ff_FFlags *ff);
+bool ff_getopt_wild_after(char **arg, ff_FFlags *ff);
+bool ff_getopt_wild_before(char **arg, ff_FFlags *ff);
 int ff_get_process_argv(char * **argv, ff_FFlags *ff);
 
 #endif //FFLAGS_FFLAGS_H

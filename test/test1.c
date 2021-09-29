@@ -46,6 +46,13 @@ int main(int argc, char **argv) {
         printf("wild: %s\n", text);
     }
 
+    while (ff_getopt_wild_after(&text, ff)) {
+        printf("after wild: %s\n", text);
+    }
+
+    while (ff_getopt_wild_before(&text, ff)) {
+        printf("before wild: %s\n", text);
+    }
     ff_freeFFlags(ff);
     return 0;
 }

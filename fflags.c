@@ -28,7 +28,9 @@ struct ff_FFlags {
     struct ff_Argv *done;
     struct ff_Argv *next;
 
-    struct ff_Argv *wild_arg;
+    struct ff_Argv *wild_arg;  // 所有野参数
+    struct ff_Argv *wild_arg_before;  // -- 前
+    struct ff_Argv *wild_arg_after;  // -- 后
 
     size_t argv_index;  // argv_index
     bool allown_slash;
@@ -42,7 +44,8 @@ struct ff_Argv {
     char *data;
     bool should_free;  // data是否需要被释放
     bool is_arg;  // 是参数而非开关
-    bool wild;  // 非开关的参数
+    bool wild;  // -- 后的非开关的参数
+    bool wild_arg;  // -- 前的非开关参数
     struct ff_Argv *next;
 };
 
@@ -82,6 +85,8 @@ ff_FFlags *ff_makeFFlags(int argc, char **argv, bool del_first, bool allown_slas
     ff->argv = ff_argv;
     ff->done = ff->argv;
     ff->wild_arg = ff->argv;
+    ff->wild_arg_after = ff->argv;
+    ff->wild_arg_before = ff->argv;
     if (ff->done != NULL)
         ff->next = ff->done->next;
 
@@ -197,7 +202,7 @@ static int getShortOpt(char ch, char **arg, ff_FFlags *ff) {
 
     int mark = define->mark;
     if (define->type == ff_must_argument) {
-        if (ff->next == NULL || ff->next->wild || !ff->next->is_arg) {  // 不是合法参数
+        if (ff->next == NULL || ff->next->wild || ff->done->wild_arg || !ff->next->is_arg) {  // 不是合法参数
             *arg = NULL;
             mark = 0;
             fprintf(ff->error_file, "Program do not get a argument after option. [-%c]\n", ch);
@@ -206,7 +211,7 @@ static int getShortOpt(char ch, char **arg, ff_FFlags *ff) {
             ff->next = ff->next->next;
         }
     } else if (define->type == ff_can_argument) {
-        if (ff->next != NULL && !ff->next->wild && ff->next->is_arg) {  // 是合法参数
+        if (ff->next != NULL && !ff->next->wild && !ff->done->wild_arg && ff->next->is_arg) {  // 是合法参数
             *arg = ff->next->data;
             ff->next = ff->next->next;
         } else
@@ -225,7 +230,7 @@ static int getLongOpt(char *opt, char **arg, ff_FFlags *ff) {
 
     int mark = define->mark;
     if (define->type == ff_must_argument) {
-        if (ff->next == NULL || ff->next->wild || !ff->next->is_arg) {  // 不是合法参数
+        if (ff->next == NULL || ff->next->wild || ff->done->wild_arg || !ff->next->is_arg) {  // 不是合法参数
             *arg = NULL;
             mark = 0;
             fprintf(ff->error_file, "Program do not get a argument after option. [-%s]\n", opt);
@@ -234,7 +239,7 @@ static int getLongOpt(char *opt, char **arg, ff_FFlags *ff) {
             ff->next = ff->next->next;
         }
     } else if (define->type == ff_can_argument) {
-        if (ff->next != NULL && !ff->next->wild && ff->next->is_arg) {  // 是合法参数
+        if (ff->next != NULL && !ff->next->wild && !ff->done->wild_arg && ff->next->is_arg) {  // 是合法参数
             *arg = ff->next->data;
             ff->next = ff->next->next;
         } else
@@ -260,7 +265,7 @@ int ff_getopt(char **arg, ff_FFlags *ff) {
     }
 
     while (ff->done != NULL) {
-        if (ff->done->wild) {
+        if (ff->done->wild || ff->done->wild_arg) {
             argvToNext(ff);
             continue;  // 跳过该参数
         }
@@ -288,7 +293,7 @@ int ff_getopt(char **arg, ff_FFlags *ff) {
                 return ch;
             }
         } else {
-            ff->done->wild = true;
+            ff->done->wild_arg = true;
             argvToNext(ff);
             continue;  // 跳过该参数
         }
@@ -297,6 +302,10 @@ int ff_getopt(char **arg, ff_FFlags *ff) {
     return -1;
 }
 
+/*
+ * 函数名: ff_getopt_wild
+ * 目标: 遍历获取所有野参数
+ */
 bool ff_getopt_wild(char **arg, ff_FFlags *ff) {
     ff_Argv *wild = ff->wild_arg;
     if (wild == NULL) {
@@ -305,7 +314,7 @@ bool ff_getopt_wild(char **arg, ff_FFlags *ff) {
     }
 
     for (NULL; wild != NULL; wild = wild->next) {
-        if (wild->wild) {
+        if (wild->wild || wild->wild_arg) {
             *arg = wild->data;
             ff->wild_arg = wild->next;
             return true;
@@ -313,7 +322,47 @@ bool ff_getopt_wild(char **arg, ff_FFlags *ff) {
     }
 
     *arg = NULL;
-    ff->wild_arg = NULL;
+    ff->wild_arg = ff->argv;
+    return false;
+}
+
+bool ff_getopt_wild_after(char **arg, ff_FFlags *ff) {
+    ff_Argv *wild = ff->wild_arg_after;
+    if (wild == NULL) {
+        *arg = NULL;
+        return false;
+    }
+
+    for (NULL; wild != NULL; wild = wild->next) {
+        if (wild->wild) {
+            *arg = wild->data;
+            ff->wild_arg_after = wild->next;
+            return true;
+        }
+    }
+
+    *arg = NULL;
+    ff->wild_arg_after = ff->argv;
+    return false;
+}
+
+bool ff_getopt_wild_before(char **arg, ff_FFlags *ff) {
+    ff_Argv *wild = ff->wild_arg_before;
+    if (wild == NULL) {
+        *arg = NULL;
+        return false;
+    }
+
+    for (NULL; wild != NULL; wild = wild->next) {
+        if (wild->wild_arg) {
+            *arg = wild->data;
+            ff->wild_arg_before = wild->next;
+            return true;
+        }
+    }
+
+    *arg = NULL;
+    ff->wild_arg_before = ff->argv;
     return false;
 }
 
