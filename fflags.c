@@ -28,7 +28,7 @@ struct ff_FFlags {
     struct ff_Argv *done;
     struct ff_Argv *next;
 
-    struct ff_Argv *wild_arg;  // 所有野参数
+    struct ff_Argv *wild_arg;  // 所有非开关参数
     struct ff_Argv *wild_arg_before;  // -- 前
     struct ff_Argv *wild_arg_after;  // -- 后
 
@@ -136,7 +136,7 @@ static ff_Argv **makeArgv(int argc, char **argv, bool slash, ff_Argv **base) {
     ff_Argv **base_argv = base;
     bool is_wild = false;
     for (int i = 0; i < argc; i++) {
-        if (!is_wild && strcmp(argv[i], "--") == 0) {  // 变为野参数
+        if (!is_wild && strcmp(argv[i], "--") == 0) {  // 变为非开关参数
             is_wild = true;
             continue;  // 跳过
         }
@@ -304,15 +304,10 @@ int ff_getopt(char **arg, ff_FFlags *ff) {
 
 /*
  * 函数名: ff_getopt_wild
- * 目标: 遍历获取所有野参数
+ * 目标: 遍历获取所有非开关参数
  */
 bool ff_getopt_wild(char **arg, ff_FFlags *ff) {
     ff_Argv *wild = ff->wild_arg;
-    if (wild == NULL) {
-        *arg = NULL;
-        return false;
-    }
-
     for (NULL; wild != NULL; wild = wild->next) {
         if (wild->wild || wild->wild_arg) {
             *arg = wild->data;
@@ -328,11 +323,6 @@ bool ff_getopt_wild(char **arg, ff_FFlags *ff) {
 
 bool ff_getopt_wild_after(char **arg, ff_FFlags *ff) {
     ff_Argv *wild = ff->wild_arg_after;
-    if (wild == NULL) {
-        *arg = NULL;
-        return false;
-    }
-
     for (NULL; wild != NULL; wild = wild->next) {
         if (wild->wild) {
             *arg = wild->data;
@@ -348,11 +338,6 @@ bool ff_getopt_wild_after(char **arg, ff_FFlags *ff) {
 
 bool ff_getopt_wild_before(char **arg, ff_FFlags *ff) {
     ff_Argv *wild = ff->wild_arg_before;
-    if (wild == NULL) {
-        *arg = NULL;
-        return false;
-    }
-
     for (NULL; wild != NULL; wild = wild->next) {
         if (wild->wild_arg) {
             *arg = wild->data;
