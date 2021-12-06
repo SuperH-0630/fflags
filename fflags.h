@@ -37,19 +37,19 @@ typedef struct ff_DefineArg ff_DefineArg;
 struct ff_Child {
     bool is_default;
     bool self_process;  // 自行除了参数
-    char *child_name;
+    const char *child_name;
     struct ff_DefineArg *define;  // 列表
 };
 
 struct ff_DefineArg {
-    char short_opt;
-    char *long_opt;
+    const char short_opt;
+    const char *long_opt;
     enum optType type;
     int mark;  // 标识
 };
 
 ff_FFlags *ff_makeFFlags(int argc, char **argv, bool del_first, bool allown_slash, FILE *error_file, ff_Child *child[]);
-char *ff_childType(ff_FFlags *ff);
+const char *ff_childType(ff_FFlags *ff);
 void ff_freeFFlags(ff_FFlags *ff);
 
 int ff_getopt(char **arg, ff_FFlags *ff);

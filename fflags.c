@@ -100,7 +100,7 @@ ff_FFlags *ff_makeFFlags(int argc, char **argv, bool del_first, bool allown_slas
     return ff;
 }
 
-char *ff_childType(ff_FFlags *ff) {
+const char *ff_childType(ff_FFlags *ff) {
     return ff->child->child_name;
 }
 
